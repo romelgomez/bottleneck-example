@@ -5,6 +5,7 @@ var config = require('config');
 const strictUriEncode = require('strict-uri-encode');
 var hmacsha1 = require('hmacsha1');
 var OAuth2 = require('oauth').OAuth2;
+var Q = require('q');
 var accounts = require('./accounts.json');
 
 /**
@@ -23,10 +24,6 @@ function getSignature (headers,accountHandle){
     '&oauth_version=' + headers.oauth_version +
     '&screen_name=' + accountHandle;
 
-  //console.log('');
-  //console.log('parametersString:',parametersString);
-  //console.log('');
-
   let signatureBaseString =
     httpMethod +
     '&' +
@@ -34,29 +31,12 @@ function getSignature (headers,accountHandle){
     '&' +
     strictUriEncode(parametersString);
 
-  //console.log('');
-  //console.log('strictUriEncode(parametersString)',strictUriEncode(parametersString))
-  //console.log('');
-
-  console.log('');
-  console.log('signatureBaseString',signatureBaseString)
-  console.log('');
-
   let signingKey =
     strictUriEncode(config.get('API.KEYS.CONSUMER_KEY_SECRET')) +
     '&' +
     strictUriEncode(config.get('API.KEYS.ACCESS_TOKEN_SECRET'));
 
-  console.log('config.get(\'API.KEYS.CONSUMER_KEY_SECRET\'): ',config.get('API.KEYS.CONSUMER_KEY_SECRET'));
-  console.log('config.get(\'API.KEYS.ACCESS_TOKEN_SECRET\'): ',config.get('API.KEYS.ACCESS_TOKEN_SECRET'));
-  console.log('signingKey: ',signingKey)
-
-  //return hmacsha1('MCD8BKwGdgPHvAuvgvz4EQpqDAtx89grbuNMRd7Eh98&J6zix3FfA9LofH0awS24M3HcBYXO5nI1iYe8EfBA',signatureBaseString);
   return hmacsha1(signingKey,signatureBaseString);
-}
-
-function getAccountData2(){
-  console.log('getTimestamp',getTimestamp());
 }
 
 /**
@@ -65,15 +45,20 @@ function getAccountData2(){
  * @returns {number}
  */
 function getTimestamp(){
- let time = process.hrtime();
- return  Math.round( time[ 0 ] * 1e3 + time[ 1 ] / 1e6 );
+  let time = process.hrtime();
+  return  Math.round( time[ 0 ] * 1e3 + time[ 1 ] / 1e6 );
 }
 
-/*
-  https://dev.twitter.com/oauth/application-only
-  https://coderwall.com/p/3mcuxq/twitter-and-node-js-application-auth
+/**
+ * Application-only authentication
+ *
+ * Resources:
+ *  https://dev.twitter.com/oauth/application-only
+ *  https://coderwall.com/p/3mcuxq/twitter-and-node-js-application-auth
+ *
  */
 function getBearerToken(){
+  var deferred = Q.defer();
 
   var oauth2 = new OAuth2(config.get('API.KEYS.CONSUMER_KEY'), config.get('API.KEYS.CONSUMER_KEY_SECRET'), 'https://api.twitter.com/', null, 'oauth2/token', null);
 
@@ -81,12 +66,17 @@ function getBearerToken(){
     'grant_type': 'client_credentials'
   }, function (e, access_token) {
     console.log('e',e);
-    console.log('access_token',access_token); //string that we can use to authenticate request
+    if(typeof access_token !== 'undefined'){
+      deferred.resolve({access_token: access_token});
+    }else{
+      deferred.reject(e);
+    }
   });
 
+  return deferred.promise;
 }
 
-function getAccountData (account){
+function getAccountData (account, bearerToken){
 
   let options = {
     hostname: 'api.twitter.com',
@@ -102,42 +92,13 @@ function getAccountData (account){
       oauth_timestamp: getTimestamp(),
       oauth_token: config.get('API.KEYS.ACCESS_TOKEN'),
       oauth_version:'1.0',
-      Authorization:'Bearer AAAAAAAAAAAAAAAAAAAAACc1xgAAAAAA4lXKdN1TjGrNHrWQP4fJ3Fj1TpU%3DizrUx6bQsFSkWAinQreaMsvuf1Q9n4ow1i2OcCb1lCtzGlUsRh'
+      Authorization: 'Bearer '+ bearerToken
     }
   };
 
-  //Authorization:OAuth oauth_consumer_key="DC0sePOBbQ8bYdC8r4Smg",oauth_signature_method="HMAC-SHA1",oauth_timestamp="1476961551",oauth_nonce="-561730464",oauth_version="1.0",oauth_token="192774776-IfH6tdFfbwzlVs6Ub1obkTDefvhQFMs2xMeprzip",oauth_signature="rWDotSYOBt1i6DHo4AIrtCVvnWw%3D"
+  options.headers.oauth_signature = getSignature(options.headers, account.handle);
 
-  let signature = getSignature(options.headers, account.handle);
-  console.log('signature',signature);
-  options.headers.oauth_signature = signature;
-
-  let bearerToken
-
-  //options.headers.Authorization =
-  //  'OAuth ' +
-  //  'oauth_consumer_key="' + options.headers.oauth_consumer_key + '",' +
-  //  'oauth_signature_method="' + options.headers.oauth_signature_method + '",' +
-  //  'oauth_timestamp="' + options.headers.oauth_timestamp + '",' +
-  //  'oauth_nonce="' + options.headers.oauth_nonce + '",' +
-  //  'oauth_version="' + options.headers.oauth_version + '",' +
-  //  'oauth_token="' + options.headers.oauth_token + '",' +
-  //  'oauth_signature="' + options.headers.oauth_signature + '",';
-
-  //console.log('options', options);
-
-  //https.get(options, (res) => {
-  //  //console.log('res:', res);
-  //  console.log('statusCode:', res.statusCode);
-  //  console.log('headers:', res.headers);
-  //
-  //  res.on('data', (d) => {
-  //    process.stdout.write(d);
-  //  });
-  //
-  //}).on('error', (e) => {
-  //  console.error(e);
-  //});
+  console.log('options.headers', options.headers);
 
   var req = https.request(options, (res) => {
     console.log('statusCode:', res.statusCode);
@@ -151,7 +112,23 @@ function getAccountData (account){
 
 }
 
-accounts.forEach(function (account){
-  getAccountData(account)
-  //getBearerToken();
-});
+function main(){
+
+  let bearerToken = '';
+
+  getBearerToken()
+    .then(function(the){
+
+      console.log('the.access_token',the.access_token);
+
+      bearerToken = the.access_token;
+
+      accounts.forEach(function (account){
+        getAccountData( account, bearerToken);
+      });
+
+    });
+
+}
+
+main();
