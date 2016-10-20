@@ -9,12 +9,30 @@ var Q = require('q');
 var accounts = require('./accounts.json');
 
 /**
- * Creating a signature - https://dev.twitter.com/oauth/overview/creating-signatures
+ * Creating a signature
+ * Resource https://dev.twitter.com/oauth/overview/creating-signatures
+ * @param headers {Object}
+ * @param accountHandle {string}
+ * @returns {string}
  */
 function getSignature (headers,accountHandle){
+
+  /**
+   * Http Method to form <signatureBaseString>
+   * @type {string}
+   */
   let httpMethod = 'GET';
+
+  /**
+   * Base URL to form <signatureBaseString>
+   * @type {string}
+   */
   let baseURL = 'https://api.twitter.com/1.1/users/show.json';
 
+  /**
+   * Parameters String to form <signatureBaseString>
+   * @type {string}
+   */
   let parametersString =
     'oauth_consumer_key=' + headers.oauth_consumer_key +
     '&oauth_nonce=' + headers.oauth_nonce +
@@ -24,6 +42,10 @@ function getSignature (headers,accountHandle){
     '&oauth_version=' + headers.oauth_version +
     '&screen_name=' + accountHandle;
 
+  /**
+   * Signature base string
+   * @type {string}
+   */
   let signatureBaseString =
     httpMethod +
     '&' +
@@ -31,6 +53,10 @@ function getSignature (headers,accountHandle){
     '&' +
     strictUriEncode(parametersString);
 
+  /**
+   * Signing Key
+   * @type {string}
+   */
   let signingKey =
     strictUriEncode(config.get('API.KEYS.CONSUMER_KEY_SECRET')) +
     '&' +
@@ -56,6 +82,7 @@ function getTimestamp(){
  *  https://dev.twitter.com/oauth/application-only
  *  https://coderwall.com/p/3mcuxq/twitter-and-node-js-application-auth
  *
+ * @return {Promise<Object>}
  */
 function getBearerToken(){
   var deferred = Q.defer();
@@ -65,7 +92,6 @@ function getBearerToken(){
   oauth2.getOAuthAccessToken('', {
     'grant_type': 'client_credentials'
   }, function (e, access_token) {
-    console.log('e',e);
     if(typeof access_token !== 'undefined'){
       deferred.resolve({access_token: access_token});
     }else{
@@ -76,13 +102,22 @@ function getBearerToken(){
   return deferred.promise;
 }
 
-function getAccountData (account, bearerToken){
+/**
+ * Get Account Data
+ * Resource: https://nodejs.org/api/https.html
+ * @param handle {string}
+ * @param bearerToken {string}
+ */
+function getAccountData (handle, bearerToken){
 
+  /**
+   * Https request options
+   */
   let options = {
     hostname: 'api.twitter.com',
     method: 'GET',
     port: 443,
-    path: '/1.1/users/show.json?screen_name='+ account.handle,
+    path: '/1.1/users/show.json?screen_name='+ handle,
     headers:{
       Connection:'Keep-Alive',
       'X-Target-URI':'https://api.twitter.com',
@@ -96,9 +131,7 @@ function getAccountData (account, bearerToken){
     }
   };
 
-  options.headers.oauth_signature = getSignature(options.headers, account.handle);
-
-  console.log('options.headers', options.headers);
+  options.headers.oauth_signature = getSignature(options.headers, handle);
 
   var req = https.request(options, (res) => {
     console.log('statusCode:', res.statusCode);
@@ -114,17 +147,19 @@ function getAccountData (account, bearerToken){
 
 function main(){
 
+  /**
+   * bearer token
+   * @type {string}
+   */
   let bearerToken = '';
 
   getBearerToken()
     .then(function(the){
 
-      console.log('the.access_token',the.access_token);
-
       bearerToken = the.access_token;
 
       accounts.forEach(function (account){
-        getAccountData( account, bearerToken);
+        getAccountData( account.handle, bearerToken);
       });
 
     });
