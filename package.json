@@ -1,15 +1,24 @@
 {
-  "name": "twiba-dev",
+  "name": "twiba-test-1-analyze-twitter-accounts",
   "version": "0.0.1",
   "description": "> Analysis of Twitter Accounts",
-  "main": "test-1.js",
+  "main": "index.js",
   "dependencies": {
-    "config": "^1.21.0",
-    "hmacsha1": "^1.0.0",
-    "oauth": "^0.9.14",
-    "q": "^1.4.1",
-    "strict-uri-encode": "^2.0.0",
-    "uuid": "^2.0.3"
+    "@types/bunyan": "0.0.32",
+    "@types/colors": "^0.6.33",
+    "@types/config": "0.0.30",
+    "@types/es6-promise": "0.0.32",
+    "@types/lodash": "^4.14.38",
+    "@types/moment": "^2.13.0",
+    "@types/node": "^6.0.46",
+    "bottleneck": "^1.15.0",
+    "bunyan": "^1.8.4",
+    "colors": "^1.1.2",
+    "config": "^1.24.0",
+    "es6-promise": "^4.0.5",
+    "lodash": "^4.16.6",
+    "moment": "^2.15.2",
+    "twit": "^2.2.5"
   },
   "devDependencies": {},
   "scripts": {
@@ -17,9 +26,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/romelgomez/twiba.git"
+    "url": "git+https://github.com/romelgomez/twiba-test-1-analyze-twitter-accounts.git"
   },
   "author": "",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/romelgomez/twiba#readme"
+  "bugs": {
+    "url": "https://github.com/romelgomez/twiba-test-1-analyze-twitter-accounts/issues"
+  },
+  "homepage": "https://github.com/romelgomez/twiba-test-1-analyze-twitter-accounts#readme"
 }

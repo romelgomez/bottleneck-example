@@ -1,0 +1,25 @@
+{
+  "name": "twiba-dev",
+  "version": "0.0.1",
+  "description": "> Analysis of Twitter Accounts",
+  "main": "test-1.js",
+  "dependencies": {
+    "config": "^1.21.0",
+    "hmacsha1": "^1.0.0",
+    "oauth": "^0.9.14",
+    "q": "^1.4.1",
+    "strict-uri-encode": "^2.0.0",
+    "uuid": "^2.0.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/romelgomez/twiba.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "homepage": "https://bitbucket.org/romelgomez/twiba#readme"
+}

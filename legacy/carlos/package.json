@@ -1,0 +1,23 @@
+{
+  "name": "twiba",
+  "version": "3.0.8",
+  "description": "Analysis of Twitter Accounts",
+  "main": "./lib/twiba.js",
+  "scripts": {
+    "test_1": "node test/test1.js",
+    "test_2": "node test/test2.js",
+    "test_3": "node test/test3.js"
+  },
+  "keywords": [
+    "node",
+    "twitter",
+    "twitter-api",
+    "rest-api"
+  ],
+  "author": "Carlos Meneses osen10112 <osen.10112@gmail.com> (http://twiba.nl)",
+  "license": "MIT",
+  "dependencies": {
+    "deep-extend": "^0.4.1",
+    "request": "^2.75.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "twiba-twit",
+  "version": "0.0.1",
+  "description": "Analysis of Twitter Accounts",
+  "main": "test-1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bottleneck": "^1.14.0",
+    "bunyan": "^1.8.4",
+    "colors": "^1.1.2",
+    "config": "^1.21.0",
+    "deep-extend": "^0.4.1",
+    "lodash": "^4.16.4",
+    "moment": "^2.15.1",
+    "twit": "^2.2.5"
+  }
+}
