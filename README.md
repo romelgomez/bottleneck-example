@@ -1,4 +1,4 @@
-# twiba - Test 1
+# Bottleneck example - Test 1
 
 > Analysis of Twitter Accounts
 
